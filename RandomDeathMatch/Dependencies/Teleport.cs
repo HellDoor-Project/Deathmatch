@@ -144,7 +144,7 @@ namespace TheRiptide
     {
         public bool SanitizeResponse => false;
 
-        public string Command { get; } = "tp";
+        public string Command { get; } = "tproom";
 
         public string[] Aliases { get; } = new string[] { };
 
@@ -270,7 +270,7 @@ namespace TheRiptide
     {
         public bool SanitizeResponse => false;
 
-        public string Command { get; } = "gp";
+        public string Command { get; } = "gpos";
 
         public string[] Aliases { get; } = new string[] { };
 

@@ -522,6 +522,7 @@ namespace TheRiptide
             {
                 Killstreak killstreak = player_killstreak[killer.PlayerId];
                 killstreak.count++;
+                killer.Heal(100);
                 KillstreakRewardTable table = config.KillstreakTables[killstreak.name];
 
                 if (!table.ItemTable.IsEmpty())
