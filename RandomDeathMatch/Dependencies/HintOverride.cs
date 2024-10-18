@@ -1,7 +1,10 @@
-﻿using MEC;
+﻿using Hints;
+using MEC;
 using PluginAPI.Core;
 using PluginAPI.Core.Attributes;
 using PluginAPI.Enums;
+using RueI.Displays;
+using RueI.Elements;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -13,22 +16,24 @@ namespace TheRiptide
 {
     class HintOverride
     {
+        public class Hint
+        {
+            public string msg;
+            public float duration = -1.0f;
+        }
         class HintInfo
         {
-            class Hint
-            {
-                public string msg;
-                public float duration = -1.0f;
-            }
+            
 
-            SortedDictionary<int, Hint> active_hints = new SortedDictionary<int, Hint>();
-            Stopwatch stop_watch = new Stopwatch();
-            CoroutineHandle handle = new CoroutineHandle();
+            public SortedDictionary<int, Hint> active_hints = new SortedDictionary<int, Hint>();
+            public Stopwatch stop_watch = new Stopwatch();
+            public CoroutineHandle handle = new CoroutineHandle();
 
             public HintInfo()
             {
                 stop_watch.Start();
             }
+            
 
             public void Add(int id, string msg, float duration)
             {
@@ -71,13 +76,6 @@ namespace TheRiptide
             {
                 UpdateDuration();
 
-                string msg = "";
-                foreach (Hint hint in active_hints.Values)
-                    if (hint.duration > 0.0f)
-                        msg += hint.msg;
-
-                player.ReceiveHint(msg, 300);
-
                 float min = 300.0f;
                 bool any_active = false;
                 foreach(var id in active_hints.Keys.ToList())
@@ -111,11 +109,26 @@ namespace TheRiptide
 
         private static Dictionary<int, HintInfo> hint_info = new Dictionary<int, HintInfo>();
 
+
+        public static string GetContent(Player player)
+        {
+            string msg = "";
+            if (hint_info.TryGetValue(player.PlayerId, out HintInfo info))
+                foreach (Hint hint in info.active_hints.Values)
+                    if (hint.duration > 0.0f)
+                        msg += hint.msg;
+            return msg;
+        }
+
         [PluginEvent(ServerEventType.PlayerJoined)]
         void OnPlayerJoined(Player player)
         {
             if (!hint_info.ContainsKey(player.PlayerId))
                 hint_info.Add(player.PlayerId, new HintInfo());
+            DisplayCore core = DisplayCore.Get(player.ReferenceHub);
+            Display display = new Display(core);
+            DynamicHeightPlayerElement element = new DynamicHeightPlayerElement(HintOverride.GetContent, 30);
+            core.Scheduler.Schedule(TimeSpan.Zero, () => display.Elements.Add(element));
         }
 
         [PluginEvent(ServerEventType.PlayerLeft)]
